@@ -27,6 +27,7 @@
 #           * Calcula os microestados de recorrência de um RP.
 #               > A estrutura disso é meio chatinha de fazer uma certa abstração, porque eu acabei colocando tudo em
 #   uma única função, então, ficou um pouquinho carregada, mas deve funcionar ... eu acho =V
+#           * Calcula a Entropia de Shenon a partir desses microestados.
 # ================================================================================================================================= #
 #       - Bibliotecas necessárias para rodar esse script:
 #           > Distances.jl
@@ -144,6 +145,21 @@ function motifs_probabilities(rp::AbstractMatrix{Int8}, n::Int; no_use_samples::
     end
 
     return motifs, counter
+end
+# ================================================================================================================================= #
+export entropy
+#
+#           Calcula a entropia de Shenon para as recorrências. (ou melhor, aplica isso na entropia de Shenon)
+function entropy(probs::Dict{Int64,__RP_FLOAT_TYPE})
+    s = 0.0
+
+    for k in keys(probs)
+        if (probs[k] > 0)
+            s += (-1) * probs[k] * log(probs[k])
+        end
+    end
+
+    return s
 end
 # ================================================================================================================================= #
 export power_vector
