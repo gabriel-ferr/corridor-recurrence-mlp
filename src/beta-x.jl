@@ -38,11 +38,7 @@ include("rp.jl")
 using .RP
 using JLD2
 using Flux
-using Metal         # Trocas esse pelo CUDA ou AMDGPU dependendo da placa de vídeo =3
-using Dates
 using Statistics
-using CairoMakie
-using ProgressMeter
 using LinearAlgebra
 using BenchmarkTools
 # ================================================================================================================================= #
@@ -193,15 +189,15 @@ function main()
         save_object("data/beta-x-status.dat", status)
     end
     # ============================================================================================================================= #
-    make_graphs()
+    #make_graphs()
 end
 # ================================================================================================================================= #
-function make_graphs()
+#function make_graphs()
     #       Gráfico da accuracy
-    accr_mat = load_object("data/beta-x-accuracy.dat")
-    println(findmax(accr_mat[:, :, end, end]'))
-    heatmap(ε, ε, accr_mat[:, :, end, end]', colormap=:ice)
-end
+#    accr_mat = load_object("data/beta-x-accuracy.dat")
+#    println(findmax(accr_mat[:, :, end, end]'))
+#    heatmap(ε, ε, accr_mat[:, :, end, end]', colormap=:ice)
+#end
 # ================================================================================================================================= #
 #           Calcula a accuracy =3
 function calculate_accuracy(ε_min, ε_max; pvec=power_vector(motif_size))
