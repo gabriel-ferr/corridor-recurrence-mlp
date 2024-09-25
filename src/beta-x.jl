@@ -66,10 +66,10 @@ const mlp_samples = 1
 #           Intervalo de threshold que vai ser usado (fica mais fácil deixar isso pronto =3)
 #   O terceiro valor disso determina a resolução, mas como o objetivo aqui é calcular a accuracy para todas as entropias
 #   deixar uma resolução muito alta vai fazer o computador chorar com a carga de trabalho >.<
-const ε = range(0, 0.9995, 10)
+const ε = range(0, 0.9995, 25)
 
 #           Tempo de execução mínimo em segundos, aproximadamente....
-const run_time = 520.36
+#const run_time = 520.36
 
 # ================================================================================================================================= #
 #           Função de entrada para o programa. É melhor colocar tudo dentro de funções, já que o escopo global do julia
@@ -78,7 +78,7 @@ function main()
     #           Valores para calcular a entropia média =3
     xo_to_entropy = range(0.00001, 0.99999, 5)
     #           Valores para o treinamento da rede.
-    xo_to_train_mlp = rand(Float64, 1500)
+    xo_to_train_mlp = rand(Float64, 750)
     #           Valores para o teste da rede.
     xo_to_test_mlp = rand(Float64, floor(Int, length(xo_to_train_mlp) / 3))
 
@@ -155,15 +155,15 @@ function main()
 
     #       Previsão do tempo de execução
     status = load_object("data/beta-x-status.dat")
-    run_time_prev = DateTime(0) + Second(floor(Int, run_time * ((length(ε) / 2) * (length(ε) - 1) - (status[1] / 2) * (status[1] - 1))))
+    #run_time_prev = DateTime(0) + Second(floor(Int, run_time * ((length(ε) / 2) * (length(ε) - 1) - (status[1] / 2) * (status[1] - 1))))
 
-    println(string("Tempo de execução previsto: ", year(run_time_prev), " anos, ", month(run_time_prev) - 1, " meses, ", day(run_time_prev) - 1, " dias, ", hour(run_time_prev), " horas, ", minute(run_time_prev), " minutos e ", second(run_time_prev), " segundos."))
+    #println(string("Tempo de execução previsto: ", year(run_time_prev), " anos, ", month(run_time_prev) - 1, " meses, ", day(run_time_prev) - 1, " dias, ", hour(run_time_prev), " horas, ", minute(run_time_prev), " minutos e ", second(run_time_prev), " segundos."))
 
     # ============================================================================================================================= #
     #
     #           Vamos começar a explorar o computador =D
     #       (e a simetria também ...)
-    @showprogress for max_index = status[1]:length(ε)
+    for max_index = status[1]:length(ε)
         for min_index = status[2]:(max_index-1)
             #
             #       - Primeiro calcula a entropia, que demora menos =3
@@ -199,7 +199,8 @@ end
 function make_graphs()
     #       Gráfico da accuracy
     accr_mat = load_object("data/beta-x-accuracy.dat")
-    heatmap(accr_mat[:, :, end, 1], colormap=Reverse(:deep))
+    println(findmax(accr_mat[:, :, end, end]'))
+    heatmap(ε, ε, accr_mat[:, :, end, end]', colormap=:ice)
 end
 # ================================================================================================================================= #
 #           Calcula a accuracy =3
@@ -255,7 +256,7 @@ function calculate_accuracy(ε_min, ε_max; pvec=power_vector(motif_size))
     #       Treinamento assíncrono =v
     function __async_net_train(mlp_index, data_loader, test_probs, test_labels)
         accr = zeros(Float64, epochs)
-        model = load_object(string("network/beta-x-", mlp_index, ".mlp")) |> gpu
+        model = load_object(string("network/beta-x-", mlp_index, ".mlp"))
         model_state = Flux.setup(Flux.Adam(0.0001), model)
 
         for epc = 1:epochs
@@ -268,7 +269,7 @@ function calculate_accuracy(ε_min, ε_max; pvec=power_vector(motif_size))
             end
 
             #       Calcula o accuracy...
-            accr[epc] = __calc_accurarcy(model(test_probs) |> cpu, test_labels)
+            accr[epc] = __calc_accurarcy(model(test_probs), test_labels)
         end
 
         return accr
@@ -317,8 +318,8 @@ function calculate_accuracy(ε_min, ε_max; pvec=power_vector(motif_size))
     test_labels = Flux.onehotbatch(test_labels, β_values)
     train_labels = Flux.onehotbatch(train_labels, β_values)
 
-    data_loader = Flux.DataLoader((train_probs, train_labels), batchsize=50, shuffle=true) |> gpu
-    test_probs = test_probs |> gpu
+    data_loader = Flux.DataLoader((train_probs, train_labels), batchsize=50, shuffle=true) #|> gpu
+    #test_probs = test_probs |> gpu
 
     #       Aloca espaço para registrar a accuracy...
     accuracy = zeros(Float64, epochs, mlp_samples)
